@@ -1,5 +1,7 @@
 "use client";
 
+import { getPregnancyWeek } from "@/lib/pregnancy";
+
 function ProgressRing({
   percentage,
   size = 220,
@@ -75,9 +77,8 @@ const mockEntries = [
 ];
 
 export default function Home() {
-  const weekNumber = 24;
-  const dayNumber = 3;
-  const progressPercent = (weekNumber / 40) * 100;
+  const { week, dayOfWeek } = getPregnancyWeek();
+  const progressPercent = (week / 40) * 100;
   return (
     <>
       <header className="app-bar">
@@ -92,10 +93,10 @@ export default function Home() {
           <div className="relative flex items-center justify-center">
             <ProgressRing percentage={progressPercent} size={200} strokeWidth={10} />
             <div className="absolute flex flex-col items-center">
-              <span className="text-headline-lg text-primary">{weekNumber}</span>
+              <span className="text-headline-lg text-primary">{week}</span>
               <span className="text-label-sm text-text-secondary">semanas</span>
               <span className="text-label-sm text-text-secondary mt-xs">
-                Día {dayNumber}
+                Día {dayOfWeek}
               </span>
             </div>
           </div>
