@@ -59,5 +59,5 @@ export function formatSpainTime(isoStr: string) {
 }
 
 export function isNormal(systolic: number, diastolic: number) {
-  return systolic < 130 && diastolic < 85;
+  return systolic < 140 && diastolic < 90;
 }

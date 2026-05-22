@@ -81,7 +81,7 @@ export default function Home() {
   return (
     <>
       <header className="app-bar">
-        <h1 className="text-headline-sm flex-1">¡Hola mamá!</h1>
+        <h1 className="text-headline-sm flex-1">👶🏽 ¡Hola mamá!</h1>
       </header>
 
       <main className="flex-1 px-lg py-lg space-y-lg">

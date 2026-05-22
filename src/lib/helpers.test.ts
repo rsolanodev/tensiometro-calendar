@@ -43,14 +43,18 @@ describe("isNormal", () => {
     expect(isNormal(118, 76)).toBe(true);
   });
 
-  it("returns false when systolic is 130 or higher", () => {
-    expect(isNormal(130, 80)).toBe(false);
-    expect(isNormal(140, 85)).toBe(false);
+  it("returns true for 130/85 (now within normal range)", () => {
+    expect(isNormal(130, 85)).toBe(true);
   });
 
-  it("returns false when diastolic is 85 or higher", () => {
-    expect(isNormal(120, 85)).toBe(false);
-    expect(isNormal(118, 90)).toBe(false);
+  it("returns false when systolic is 140 or higher", () => {
+    expect(isNormal(140, 80)).toBe(false);
+    expect(isNormal(150, 85)).toBe(false);
+  });
+
+  it("returns false when diastolic is 90 or higher", () => {
+    expect(isNormal(120, 90)).toBe(false);
+    expect(isNormal(118, 95)).toBe(false);
   });
 
   it("returns false when both are elevated", () => {
