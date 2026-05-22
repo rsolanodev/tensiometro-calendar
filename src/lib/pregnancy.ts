@@ -18,5 +18,5 @@ export function getPregnancyWeek(
   const week = Math.floor(totalDays / 7);
   const dayOfWeek = totalDays % 7;
 
-  return { week, dayOfWeek, totalDays };
+  return { week, totalDays, dayOfWeek };
 }
