@@ -15,7 +15,7 @@ export function getPregnancyWeek(
 
   const diffMs = referenceDate.getTime() - start.getTime();
   const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const week = Math.floor(totalDays / 7) + 1;
+  const week = Math.floor(totalDays / 7);
   const dayOfWeek = totalDays % 7;
 
   return { week, dayOfWeek, totalDays };
