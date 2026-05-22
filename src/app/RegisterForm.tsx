@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import type { NewPressureRecord } from "@/lib/types";
-
-function todayStr() {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
-}
+import { getSpainToday } from "@/lib/helpers";
 
 type Props = {
   onSave: (data: NewPressureRecord) => void;
@@ -15,7 +11,7 @@ type Props = {
 };
 
 export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
-  const [date, setDate] = useState(initialDate ?? todayStr());
+  const [date, setDate] = useState(initialDate ?? getSpainToday());
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [pulse, setPulse] = useState("");

@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { formatDateLabel, formatTime, isNormal } from "./helpers";
+import { formatDateLabel, formatSpainTime, isNormal } from "./helpers";
 
 describe("formatDateLabel", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-05-22T12:00:00"));
+    vi.setSystemTime(new Date("2026-05-22T10:00:00Z"));
   });
 
   afterEach(() => {
@@ -28,13 +28,13 @@ describe("formatDateLabel", () => {
   });
 });
 
-describe("formatTime", () => {
-  it("extracts HH:MM from an ISO string", () => {
-    expect(formatTime("2026-05-22T08:30:00.000Z")).toBe("08:30");
+describe("formatSpainTime", () => {
+  it("converts UTC to Spain time (CEST, UTC+2)", () => {
+    expect(formatSpainTime("2026-05-22T08:30:00.000Z")).toBe("10:30");
   });
 
-  it("handles midday time", () => {
-    expect(formatTime("2026-05-22T14:05:00.000Z")).toBe("14:05");
+  it("handles afternoon UTC time", () => {
+    expect(formatSpainTime("2026-05-22T14:05:00.000Z")).toBe("16:05");
   });
 });
 

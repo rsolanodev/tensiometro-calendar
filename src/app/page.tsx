@@ -8,7 +8,7 @@ import {
   getRecordByDate,
 } from "@/lib/db";
 import type { PressureRecord, NewPressureRecord } from "@/lib/types";
-import { formatDateLabel, formatTime, isNormal } from "@/lib/helpers";
+import { formatDateLabel, formatSpainTime, getSpainToday, isNormal } from "@/lib/helpers";
 import RegisterForm from "./RegisterForm";
 
 function ProgressRing({
@@ -57,7 +57,7 @@ export default function Home() {
   const [todayRecord, setTodayRecord] = useState<PressureRecord | undefined>();
   const [showForm, setShowForm] = useState(false);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getSpainToday();
 
   const loadRecords = useCallback(async () => {
     const all = await getAllRecords();
@@ -165,7 +165,7 @@ export default function Home() {
             <div className="flex items-center justify-between mb-md">
               <h2 className="text-headline-sm">Resumen de hoy</h2>
               <span className="pill-day-counter text-label-sm">
-                {formatTime(todayRecord.createdAt)}
+                {formatSpainTime(todayRecord.createdAt)}
               </span>
             </div>
 
@@ -226,7 +226,7 @@ export default function Home() {
                       {formatDateLabel(entry.date)}
                     </span>
                     <span className="text-label-sm text-text-secondary">
-                      {formatTime(entry.createdAt)}
+                      {formatSpainTime(entry.createdAt)}
                     </span>
                   </div>
 

@@ -1,3 +1,5 @@
+import { getSpainNow } from "./helpers";
+
 export function getPregnancyWeek(
   startDateStr?: string,
   today?: Date
@@ -8,7 +10,7 @@ export function getPregnancyWeek(
 
   const [day, month, year] = startStr.split("/").map(Number);
   const start = new Date(year, month - 1, day);
-  const referenceDate = today ? new Date(today) : new Date();
+  const referenceDate = today ? new Date(today) : getSpainNow();
 
   referenceDate.setHours(0, 0, 0, 0);
   start.setHours(0, 0, 0, 0);
