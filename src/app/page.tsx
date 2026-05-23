@@ -124,7 +124,7 @@ export default function Home() {
               <ProgressRing
                 percentage={progressPercent}
                 size={150}
-                strokeWidth={8}
+                strokeWidth={12}
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-headline-lg text-primary">{week}</span>
@@ -135,8 +135,8 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5 min-w-0">
-              <div className="flex flex-col gap-0.5 py-1.5 px-3 rounded-lg bg-surface-variant">
+              <div className="flex flex-col gap-2 min-w-0">
+              <div className="flex flex-col gap-0.5 py-2.5 px-4 rounded-lg bg-surface-variant">
                 <span className="text-label-sm text-text-secondary">Sistólica</span>
                 <div className="flex items-baseline gap-2">
                   <span className="text-headline-sm text-text-primary">
@@ -157,7 +157,7 @@ export default function Home() {
                   )}
                 </div>
               </div>
-              <div className="flex flex-col gap-0.5 py-1.5 px-3 rounded-lg bg-surface-variant">
+              <div className="flex flex-col gap-0.5 py-2.5 px-4 rounded-lg bg-surface-variant">
                 <span className="text-label-sm text-text-secondary">Diastólica</span>
                 <div className="flex items-baseline gap-2">
                   <span className="text-headline-sm text-text-primary">
@@ -178,7 +178,7 @@ export default function Home() {
                   )}
                 </div>
               </div>
-              <div className="flex flex-col gap-0.5 py-1.5 px-3 rounded-lg bg-surface-variant">
+              <div className="flex flex-col gap-0.5 py-2.5 px-4 rounded-lg bg-surface-variant">
                 <span className="text-label-sm text-text-secondary">Pulso</span>
                 <div className="flex items-baseline gap-2">
                   <span className="text-headline-sm text-text-primary">
