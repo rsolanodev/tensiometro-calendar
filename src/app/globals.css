@@ -208,3 +208,58 @@ body {
   align-items: center;
   border: 1px solid var(--color-border-subtle);
 }
+
+/* ─── Print / Report styles ───────────────────────────────── */
+
+.print-report-header {
+  display: none;
+  text-align: center;
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--spacing-md);
+}
+
+.records-table-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+@media print {
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-report-header {
+    display: block !important;
+  }
+
+  body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .bottom-nav {
+    display: none !important;
+  }
+
+  .card-surface {
+    break-inside: avoid;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+
+  .records-table-container {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .space-y-lg > :last-child {
+    break-inside: auto;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

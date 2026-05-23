@@ -9,12 +9,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("BottomNav", () => {
-  it("renders both links", () => {
+  it("renders all three links", () => {
     mockUsePathname.mockReturnValue("/");
     render(<BottomNav />);
 
     expect(screen.getByText("Diario")).toBeDefined();
     expect(screen.getByText("Calendario")).toBeDefined();
+    expect(screen.getByText("Métricas")).toBeDefined();
   });
 
   it("highlights Diario when pathname is /", () => {
@@ -26,6 +27,9 @@ describe("BottomNav", () => {
 
     const calendario = screen.getByText("Calendario");
     expect(calendario.className).toContain("text-text-secondary");
+
+    const metricas = screen.getByText("Métricas");
+    expect(metricas.className).toContain("text-text-secondary");
   });
 
   it("highlights Calendario when pathname is /calendario", () => {
@@ -37,6 +41,23 @@ describe("BottomNav", () => {
 
     const calendario = screen.getByText("Calendario");
     expect(calendario.className).toContain("text-primary");
+
+    const metricas = screen.getByText("Métricas");
+    expect(metricas.className).toContain("text-text-secondary");
+  });
+
+  it("highlights Métricas when pathname is /metricas", () => {
+    mockUsePathname.mockReturnValue("/metricas");
+    render(<BottomNav />);
+
+    const diario = screen.getByText("Diario");
+    expect(diario.className).toContain("text-text-secondary");
+
+    const calendario = screen.getByText("Calendario");
+    expect(calendario.className).toContain("text-text-secondary");
+
+    const metricas = screen.getByText("Métricas");
+    expect(metricas.className).toContain("text-primary");
   });
 
   it("links point to the correct routes", () => {
@@ -44,8 +65,9 @@ describe("BottomNav", () => {
     render(<BottomNav />);
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(3);
     expect(links[0].getAttribute("href")).toBe("/");
     expect(links[1].getAttribute("href")).toBe("/calendario");
+    expect(links[2].getAttribute("href")).toBe("/metricas");
   });
 });
