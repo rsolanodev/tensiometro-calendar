@@ -1,17 +1,26 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { getSpainToday } from "@/lib/helpers";
+import { getSpainToday, isNormal } from "@/lib/helpers";
 import {
   addAppointment,
   getAllAppointments,
   getAppointmentsByDate,
   deleteAppointment,
+  addRecord,
+  getRecordByDate,
 } from "@/lib/db";
-import type { Appointment, NewAppointment, Place } from "@/lib/types";
+import type {
+  Appointment,
+  NewAppointment,
+  Place,
+  PressureRecord,
+  NewPressureRecord,
+} from "@/lib/types";
 import { PLACES, PLACE_COLORS } from "@/lib/types";
 import BottomNav from "../BottomNav";
 import AppointmentForm from "../AppointmentForm";
+import RegisterForm from "../RegisterForm";
 
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
 
@@ -40,8 +49,12 @@ export default function CalendarioPage() {
   );
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [monthApps, setMonthApps] = useState<Map<string, Place[]>>(new Map());
-  const [showForm, setShowForm] = useState(false);
-  const [allApps, setAllApps] = useState<Appointment[]>([]);
+  const [showAppForm, setShowAppForm] = useState(false);
+  const [showRegForm, setShowRegForm] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<
+    PressureRecord | undefined
+  >();
+  const [daysWithRecord, setDaysWithRecord] = useState<Set<string>>(new Set());
 
   const monthName = new Date(year, month).toLocaleString("es-ES", {
     month: "long",
@@ -59,38 +72,53 @@ export default function CalendarioPage() {
 
   const loadAll = useCallback(async () => {
     const all = await getAllAppointments();
-    setAllApps(all);
-
-    const map = new Map<string, Place[]>();
     const from = dateStr(year, month, 1);
     const to = dateStr(year, month, daysInMonth);
+
+    const appMap = new Map<string, Place[]>();
     for (const app of all) {
       if (app.date >= from && app.date <= to) {
-        const existing = map.get(app.date) ?? [];
+        const existing = appMap.get(app.date) ?? [];
         existing.push(app.place);
-        map.set(app.date, existing);
+        appMap.set(app.date, existing);
       }
     }
-    setMonthApps(map);
+    setMonthApps(appMap);
 
     if (selectedDate) {
       const dayApps = await getAppointmentsByDate(selectedDate);
       setAppointments(dayApps);
+      const rec = await getRecordByDate(selectedDate);
+      setSelectedRecord(rec);
     }
+
+    const { getAllRecords } = await import("@/lib/db");
+    const allRecords = await getAllRecords();
+    const recSet = new Set<string>();
+    for (const r of allRecords) {
+      recSet.add(r.date);
+    }
+    setDaysWithRecord(recSet);
   }, [year, month, selectedDate, daysInMonth]);
 
   useEffect(() => {
     loadAll();
   }, [loadAll]);
 
-  async function handleSave(data: NewAppointment) {
+  async function handleSaveApp(data: NewAppointment) {
     await addAppointment(data);
-    setShowForm(false);
+    setShowAppForm(false);
     await loadAll();
   }
 
-  async function handleDelete(id: number) {
+  async function handleDeleteApp(id: number) {
     await deleteAppointment(id);
+    await loadAll();
+  }
+
+  async function handleSaveRecord(data: NewPressureRecord) {
+    await addRecord(data);
+    setShowRegForm(false);
     await loadAll();
   }
 
@@ -191,9 +219,13 @@ export default function CalendarioPage() {
                   }`}
                 >
                   {day}
-                  {monthApps.has(dateStr(year, month, day)) && (
+                  {(monthApps.has(dateStr(year, month, day)) ||
+                    daysWithRecord.has(dateStr(year, month, day))) && (
                     <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 flex gap-0.5">
-                      {monthApps.get(dateStr(year, month, day))!.map((p, idx) => (
+                      {daysWithRecord.has(dateStr(year, month, day)) && (
+                        <span className="size-1.5 rounded-full bg-success" />
+                      )}
+                      {monthApps.get(dateStr(year, month, day))?.map((p, idx) => (
                         <span
                           key={idx}
                           className="size-1.5 rounded-full"
@@ -209,61 +241,163 @@ export default function CalendarioPage() {
         </section>
 
         {selectedDate && (
-          <section className="card-surface">
-            <div className="flex items-center justify-between mb-md">
-              <h3 className="text-headline-sm">Citas médicas</h3>
-              <button
-                type="button"
-                onClick={() => setShowForm(true)}
-                className="btn-secondary text-label-sm !py-xs !px-md"
-              >
-                + Añadir
-              </button>
-            </div>
-
-            {appointments.length === 0 ? (
-              <p className="text-body-sm text-text-secondary text-center py-md">
-                No hay citas para este día
-              </p>
-            ) : (
-              <div className="space-y-sm">
-                {appointments.map((app) => (
-                  <div
-                    key={app.id}
-                    className="list-item-article"
-                  >
-                    <span
-                      className="size-3 rounded-full shrink-0"
-                      style={{ backgroundColor: PLACE_COLORS[app.place] }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-body-sm font-semibold text-text-primary">
-                        {app.place}
-                      </p>
-                      {app.notes && (
-                        <p className="text-label-sm text-text-secondary truncate">
-                          {app.notes}
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => app.id !== undefined && handleDelete(app.id)}
-                      className="size-8 flex items-center justify-center rounded-full bg-surface-variant text-text-secondary shrink-0"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
+          <>
+            {/* Pressure record for the selected day */}
+            <section className="card-surface">
+              <div className="flex items-center justify-between mb-md">
+                <h3 className="text-headline-sm">Registro de tensión</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowRegForm(true)}
+                  className="btn-secondary text-label-sm !py-xs !px-md"
+                >
+                  {selectedRecord ? "Editar" : "+ Añadir"}
+                </button>
               </div>
-            )}
-          </section>
+
+              {selectedRecord ? (
+                <div className="grid grid-cols-3 gap-md">
+                  <div className="flex flex-col items-center gap-xs py-sm rounded-lg bg-surface-variant">
+                    <span className="text-label-sm text-text-secondary">
+                      Sistólica
+                    </span>
+                    <span className="text-headline-sm text-text-primary">
+                      {selectedRecord.systolic}
+                    </span>
+                    <span
+                      className={`text-label-sm ${
+                        isNormal(
+                          selectedRecord.systolic,
+                          selectedRecord.diastolic
+                        )
+                          ? "text-success"
+                          : "text-primary"
+                      }`}
+                    >
+                      {isNormal(
+                        selectedRecord.systolic,
+                        selectedRecord.diastolic
+                      )
+                        ? "Normal"
+                        : "Alerta"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center gap-xs py-sm rounded-lg bg-surface-variant">
+                    <span className="text-label-sm text-text-secondary">
+                      Diastólica
+                    </span>
+                    <span className="text-headline-sm text-text-primary">
+                      {selectedRecord.diastolic}
+                    </span>
+                    <span
+                      className={`text-label-sm ${
+                        isNormal(
+                          selectedRecord.systolic,
+                          selectedRecord.diastolic
+                        )
+                          ? "text-success"
+                          : "text-primary"
+                      }`}
+                    >
+                      {isNormal(
+                        selectedRecord.systolic,
+                        selectedRecord.diastolic
+                      )
+                        ? "Normal"
+                        : "Alerta"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center gap-xs py-sm rounded-lg bg-surface-variant">
+                    <span className="text-label-sm text-text-secondary">
+                      Pulso
+                    </span>
+                    <span className="text-headline-sm text-text-primary">
+                      {selectedRecord.pulse}
+                    </span>
+                    <span className="text-label-sm text-text-secondary">
+                      bpm
+                    </span>
+                  </div>
+                  {selectedRecord.pillTaken && (
+                    <div className="col-span-3 flex items-center gap-sm py-sm px-md rounded-lg bg-success/10 text-success">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span className="text-label-sm font-medium">
+                        Pastilla tomada
+                      </span>
+                    </div>
+                  )}
+                  {selectedRecord.notes && (
+                    <div className="col-span-3">
+                      <p className="text-label-sm text-text-secondary">
+                        {selectedRecord.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-body-sm text-text-secondary text-center py-md">
+                  No hay registro para este día
+                </p>
+              )}
+            </section>
+
+            {/* Appointments for the selected day */}
+            <section className="card-surface">
+              <div className="flex items-center justify-between mb-md">
+                <h3 className="text-headline-sm">Citas médicas</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowAppForm(true)}
+                  className="btn-secondary text-label-sm !py-xs !px-md"
+                >
+                  + Añadir
+                </button>
+              </div>
+
+              {appointments.length === 0 ? (
+                <p className="text-body-sm text-text-secondary text-center py-md">
+                  No hay citas para este día
+                </p>
+              ) : (
+                <div className="space-y-sm">
+                  {appointments.map((app) => (
+                    <div key={app.id} className="list-item-article">
+                      <span
+                        className="size-3 rounded-full shrink-0"
+                        style={{ backgroundColor: PLACE_COLORS[app.place] }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-body-sm font-semibold text-text-primary">
+                          {app.place}
+                        </p>
+                        {app.notes && (
+                          <p className="text-label-sm text-text-secondary truncate">
+                            {app.notes}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          app.id !== undefined && handleDeleteApp(app.id)
+                        }
+                        className="size-8 flex items-center justify-center rounded-full bg-surface-variant text-text-secondary shrink-0"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
         )}
 
-        {/* Legend */}
         <section>
           <h4 className="text-label-sm text-text-secondary mb-sm">Lugares</h4>
           <div className="flex flex-wrap gap-sm">
@@ -273,8 +407,6 @@ export default function CalendarioPage() {
                 className="chip-topic"
                 style={
                   {
-                    "--chip-bg": PLACE_COLORS[p] + "20",
-                    "--chip-color": PLACE_COLORS[p],
                     backgroundColor: PLACE_COLORS[p] + "20",
                     color: PLACE_COLORS[p],
                   } as React.CSSProperties
@@ -293,11 +425,19 @@ export default function CalendarioPage() {
 
       <BottomNav />
 
-      {showForm && (
+      {showAppForm && (
         <AppointmentForm
           initialDate={selectedDate ?? undefined}
-          onSave={handleSave}
-          onCancel={() => setShowForm(false)}
+          onSave={handleSaveApp}
+          onCancel={() => setShowAppForm(false)}
+        />
+      )}
+
+      {showRegForm && (
+        <RegisterForm
+          initialDate={selectedDate ?? undefined}
+          onSave={handleSaveRecord}
+          onCancel={() => setShowRegForm(false)}
         />
       )}
     </>
