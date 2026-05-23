@@ -21,6 +21,7 @@ import { PLACES, PLACE_COLORS } from "@/lib/types";
 import BottomNav from "../BottomNav";
 import AppointmentForm from "../AppointmentForm";
 import RegisterForm from "../RegisterForm";
+import ShareModal from "../ShareModal";
 
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
 
@@ -51,6 +52,7 @@ export default function CalendarioPage() {
   const [monthApps, setMonthApps] = useState<Map<string, Place[]>>(new Map());
   const [showAppForm, setShowAppForm] = useState(false);
   const [showRegForm, setShowRegForm] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<
     PressureRecord | undefined
   >();
@@ -163,6 +165,19 @@ export default function CalendarioPage() {
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
         <h1 className="text-headline-sm flex-1">Calendario</h1>
+        <button
+          type="button"
+          onClick={() => setShowShare(true)}
+          className="size-9 flex items-center justify-center rounded-full bg-surface-variant text-text-secondary"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+        </button>
       </header>
 
       <main className="flex-1 px-lg py-lg space-y-lg">
@@ -439,6 +454,10 @@ export default function CalendarioPage() {
           onSave={handleSaveRecord}
           onCancel={() => setShowRegForm(false)}
         />
+      )}
+
+      {showShare && (
+        <ShareModal onClose={() => setShowShare(false)} />
       )}
     </>
   );

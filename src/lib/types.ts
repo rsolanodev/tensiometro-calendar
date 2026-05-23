@@ -46,3 +46,12 @@ export type NewAppointment = Omit<
   Appointment,
   "id" | "createdAt" | "updatedAt"
 >;
+
+export type ExportDataV1 = {
+  version: 1;
+  exportedAt: string;
+  records: PressureRecord[];
+  appointments: Appointment[];
+};
+
+export type ExportData = ExportDataV1;
