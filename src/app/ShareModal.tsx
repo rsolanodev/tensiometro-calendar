@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { generateExport, decodeExport, mergeImport } from "@/lib/export";
 
 type Props = {
@@ -12,9 +12,11 @@ export default function ShareModal({ onClose }: Props) {
   const [encoded, setEncoded] = useState("");
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [copyFallback, setCopyFallback] = useState(false);
   const [importText, setImportText] = useState("");
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     generateExport()
@@ -26,8 +28,19 @@ export default function ShareModal({ onClose }: Props) {
     try {
       await navigator.clipboard.writeText(encoded);
       setCopied(true);
+      setCopyFallback(false);
       setTimeout(() => setCopied(false), 2000);
     } catch {
+      if (textareaRef.current) {
+        textareaRef.current.select();
+        textareaRef.current.focus();
+        setCopyFallback(true);
+        setCopied(true);
+        setTimeout(() => {
+          setCopied(false);
+          setCopyFallback(false);
+        }, 3000);
+      }
     }
   }
 
@@ -97,12 +110,20 @@ export default function ShareModal({ onClose }: Props) {
             {loading ? (
               <div className="h-24 rounded-md bg-surface-variant animate-pulse" />
             ) : (
-              <textarea
-                readOnly
-                value={encoded}
-                rows={5}
-                className="w-full rounded-md border border-border-subtle bg-surface px-md py-sm text-body-sm text-text-primary outline-none focus:border-primary resize-none font-mono"
-              />
+              <>
+                <textarea
+                  ref={textareaRef}
+                  readOnly
+                  value={encoded}
+                  rows={5}
+                  className="w-full rounded-md border border-border-subtle bg-surface px-md py-sm text-body-sm text-text-primary outline-none focus:border-primary resize-none font-mono"
+                />
+                {copyFallback && (
+                  <p className="text-label-sm text-text-secondary text-center">
+                    Selecciona todo el texto manualmente y pulsa Ctrl+C / Cmd+C
+                  </p>
+                )}
+              </>
             )}
             <button
               type="button"
@@ -110,7 +131,7 @@ export default function ShareModal({ onClose }: Props) {
               disabled={loading}
               className="btn-primary w-full"
             >
-              {copied ? "Copiado ✓" : "Copiar al portapapeles"}
+              {copyFallback ? "Seleccionado — pulsa Ctrl+C" : copied ? "Copiado ✓" : "Copiar al portapapeles"}
             </button>
           </div>
         )}
