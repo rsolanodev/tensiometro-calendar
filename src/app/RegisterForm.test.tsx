@@ -24,21 +24,9 @@ describe("RegisterForm", () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it("shows validation errors for empty fields", async () => {
-    render(<RegisterForm onSave={vi.fn()} onCancel={vi.fn()} />);
+  it("shows validation for invalid systolic value", async () => {
+    render(<RegisterForm onSave={vi.fn()} onCancel={vi.fn()} initialSystolic={10} />);
 
-    await userEvent.click(screen.getByText("Guardar"));
-
-    expect(screen.getByText("Valor entre 60 y 250")).toBeDefined();
-    expect(screen.getByText("Valor entre 30 y 150")).toBeDefined();
-    expect(screen.getByText("Valor entre 30 y 220")).toBeDefined();
-  });
-
-  it("shows validation for out-of-range systolic", async () => {
-    render(<RegisterForm onSave={vi.fn()} onCancel={vi.fn()} />);
-
-    const sysInput = screen.getByPlaceholderText("120");
-    await userEvent.type(sysInput, "10");
     await userEvent.click(screen.getByText("Guardar"));
 
     expect(screen.getByText("Valor entre 60 y 250")).toBeDefined();
@@ -46,15 +34,17 @@ describe("RegisterForm", () => {
 
   it("calls onSave with correct data on valid submit", async () => {
     const onSave = vi.fn();
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} />);
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialSystolic={118}
+        initialDiastolic={76}
+        initialPulse={72}
+      />
+    );
 
-    const sysInput = screen.getByPlaceholderText("120");
-    const diaInput = screen.getByPlaceholderText("80");
-    const pulseInput = screen.getByPlaceholderText("72");
-
-    await userEvent.type(sysInput, "118");
-    await userEvent.type(diaInput, "76");
-    await userEvent.type(pulseInput, "72");
+    await userEvent.click(screen.getByText("Pastilla tomada"));
     await userEvent.click(screen.getByText("Guardar"));
 
     expect(onSave).toHaveBeenCalledOnce();
@@ -63,42 +53,47 @@ describe("RegisterForm", () => {
         systolic: 118,
         diastolic: 76,
         pulse: 72,
-        pillTaken: false,
+        pillTaken: true,
       })
-    );
-  });
-
-  it("includes pillTaken true when toggle is clicked", async () => {
-    const onSave = vi.fn();
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} />);
-
-    await userEvent.type(screen.getByPlaceholderText("120"), "118");
-    await userEvent.type(screen.getByPlaceholderText("80"), "76");
-    await userEvent.type(screen.getByPlaceholderText("72"), "72");
-    await userEvent.click(screen.getByText("Pastilla tomada"));
-    await userEvent.click(screen.getByText("Guardar"));
-
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ pillTaken: true })
     );
   });
 
   it("includes notes when provided", async () => {
     const onSave = vi.fn();
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} />);
-
-    await userEvent.type(screen.getByPlaceholderText("120"), "118");
-    await userEvent.type(screen.getByPlaceholderText("80"), "76");
-    await userEvent.type(screen.getByPlaceholderText("72"), "72");
-
-    const textarea = screen.getByPlaceholderText(
-      /cómo te sientes/i
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialSystolic={118}
+        initialDiastolic={76}
+        initialPulse={72}
+      />
     );
+
+    const textarea = screen.getByPlaceholderText(/cómo te sientes/i);
     await userEvent.type(textarea, "Me siento bien");
     await userEvent.click(screen.getByText("Guardar"));
 
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({ notes: "Me siento bien" })
     );
+  });
+
+  it("shows error when onSave throws", async () => {
+    const onSave = async () => { throw new Error("fail"); };
+
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialSystolic={118}
+        initialDiastolic={76}
+        initialPulse={72}
+      />
+    );
+
+    await userEvent.click(screen.getByText("Guardar"));
+
+    expect(await screen.findByText("Error al guardar. Inténtalo de nuevo.")).toBeDefined();
   });
 });

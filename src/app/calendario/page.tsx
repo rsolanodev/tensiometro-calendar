@@ -458,6 +458,9 @@ export default function CalendarioPage() {
       {showRegForm && (
         <RegisterForm
           initialDate={selectedDate ?? undefined}
+          initialSystolic={selectedRecord?.systolic}
+          initialDiastolic={selectedRecord?.diastolic}
+          initialPulse={selectedRecord?.pulse}
           onSave={handleSaveRecord}
           onCancel={() => setShowRegForm(false)}
         />

@@ -3,19 +3,25 @@
 import { useState } from "react";
 import type { NewPressureRecord } from "@/lib/types";
 import { getSpainToday, getSpainTimeString } from "@/lib/helpers";
+import WheelPicker from "./WheelPicker";
 
 type Props = {
   onSave: (data: NewPressureRecord) => void | Promise<void>;
   onCancel: () => void;
   initialDate?: string;
+  initialSystolic?: number;
+  initialDiastolic?: number;
+  initialPulse?: number;
 };
 
-export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
+const defaults = { sys: 120, dia: 80, pul: 72 };
+
+export default function RegisterForm({ onSave, onCancel, initialDate, initialSystolic, initialDiastolic, initialPulse }: Props) {
   const [date, setDate] = useState(initialDate ?? getSpainToday());
   const [time, setTime] = useState(getSpainTimeString());
-  const [systolic, setSystolic] = useState("");
-  const [diastolic, setDiastolic] = useState("");
-  const [pulse, setPulse] = useState("");
+  const [systolic, setSystolic] = useState(initialSystolic ?? defaults.sys);
+  const [diastolic, setDiastolic] = useState(initialDiastolic ?? defaults.dia);
+  const [pulse, setPulse] = useState(initialPulse ?? defaults.pul);
   const [pillTaken, setPillTaken] = useState(false);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -24,15 +30,11 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
 
   function validate() {
     const errs: Record<string, string> = {};
-    const sys = Number(systolic);
-    const dia = Number(diastolic);
-    const pul = Number(pulse);
-
-    if (!systolic || sys < 60 || sys > 250)
+    if (systolic < 60 || systolic > 250)
       errs.systolic = "Valor entre 60 y 250";
-    if (!diastolic || dia < 30 || dia > 150)
+    if (diastolic < 30 || diastolic > 150)
       errs.diastolic = "Valor entre 30 y 150";
-    if (!pulse || pul < 30 || pul > 220)
+    if (pulse < 30 || pulse > 220)
       errs.pulse = "Valor entre 30 y 220";
     if (!date) errs.date = "Selecciona una fecha";
 
@@ -50,9 +52,9 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
       await onSave({
         date,
         time: time || undefined,
-        systolic: Number(systolic),
-        diastolic: Number(diastolic),
-        pulse: Number(pulse),
+        systolic,
+        diastolic,
+        pulse,
         pillTaken,
         notes: notes || undefined,
       });
@@ -105,44 +107,31 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-sm">
-            <div>
-              <label className="text-label-sm text-text-secondary block mb-xs">Sistólica</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                placeholder="120"
-                value={systolic}
-                onChange={(e) => setSystolic(e.target.value)}
-                className="w-full rounded-full border border-border-subtle bg-surface px-md py-sm text-body-md text-text-primary outline-none focus:border-primary text-center"
-              />
-              {errors.systolic && <p className="text-label-sm text-primary mt-xs text-center">{errors.systolic}</p>}
-            </div>
-            <div>
-              <label className="text-label-sm text-text-secondary block mb-xs">Diastólica</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                placeholder="80"
-                value={diastolic}
-                onChange={(e) => setDiastolic(e.target.value)}
-                className="w-full rounded-full border border-border-subtle bg-surface px-md py-sm text-body-md text-text-primary outline-none focus:border-primary text-center"
-              />
-              {errors.diastolic && <p className="text-label-sm text-primary mt-xs text-center">{errors.diastolic}</p>}
-            </div>
-            <div>
-              <label className="text-label-sm text-text-secondary block mb-xs">Pulso</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                placeholder="72"
-                value={pulse}
-                onChange={(e) => setPulse(e.target.value)}
-                className="w-full rounded-full border border-border-subtle bg-surface px-md py-sm text-body-md text-text-primary outline-none focus:border-primary text-center"
-              />
-              {errors.pulse && <p className="text-label-sm text-primary mt-xs text-center">{errors.pulse}</p>}
-            </div>
+          <div className="grid grid-cols-3 gap-2">
+            <WheelPicker
+              value={systolic}
+              min={60}
+              max={250}
+              label="Sistólica"
+              onChange={setSystolic}
+            />
+            <WheelPicker
+              value={diastolic}
+              min={30}
+              max={150}
+              label="Diastólica"
+              onChange={setDiastolic}
+            />
+            <WheelPicker
+              value={pulse}
+              min={30}
+              max={220}
+              label="Pulso"
+              unit="bpm"
+              onChange={setPulse}
+            />
           </div>
+          {errors.systolic && <p className="text-label-sm text-primary text-center -mt-2">{errors.systolic}</p>}
 
           <div>
             <label className="flex items-center gap-md cursor-pointer py-sm">

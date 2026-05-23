@@ -16,11 +16,16 @@ describe("RegisterForm integration with IndexedDB", () => {
       await saveRecord(data);
     };
 
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} />);
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialSystolic={118}
+        initialDiastolic={76}
+        initialPulse={72}
+      />
+    );
 
-    await userEvent.type(screen.getByPlaceholderText("120"), "118");
-    await userEvent.type(screen.getByPlaceholderText("80"), "76");
-    await userEvent.type(screen.getByPlaceholderText("72"), "72");
     await userEvent.click(screen.getByText("Pastilla tomada"));
     await userEvent.click(screen.getByText("Guardar"));
 
@@ -40,11 +45,16 @@ describe("RegisterForm integration with IndexedDB", () => {
       await saveRecord(data);
     };
 
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} />);
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialSystolic={120}
+        initialDiastolic={80}
+        initialPulse={75}
+      />
+    );
 
-    await userEvent.type(screen.getByPlaceholderText("120"), "120");
-    await userEvent.type(screen.getByPlaceholderText("80"), "80");
-    await userEvent.type(screen.getByPlaceholderText("72"), "75");
     const textarea = screen.getByPlaceholderText(/cómo te sientes/i);
     await userEvent.type(textarea, "Me siento genial");
     await userEvent.click(screen.getByText("Guardar"));
@@ -61,11 +71,16 @@ describe("RegisterForm integration with IndexedDB", () => {
       throw new Error("DB error");
     };
 
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} />);
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialSystolic={118}
+        initialDiastolic={76}
+        initialPulse={72}
+      />
+    );
 
-    await userEvent.type(screen.getByPlaceholderText("120"), "118");
-    await userEvent.type(screen.getByPlaceholderText("80"), "76");
-    await userEvent.type(screen.getByPlaceholderText("72"), "72");
     await userEvent.click(screen.getByText("Guardar"));
 
     await waitFor(() => {
@@ -73,18 +88,23 @@ describe("RegisterForm integration with IndexedDB", () => {
     });
   });
 
-  it("upserts existing date record via onSave → saveRecord", async () => {
+  it("upserts existing date record via onSave", async () => {
     const { saveRecord, getRecordByDate } = await import("@/lib/db");
 
     const onSave = async (data: Parameters<typeof import("@/lib/db")["saveRecord"]>[0]) => {
       await saveRecord(data);
     };
 
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} />);
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialSystolic={118}
+        initialDiastolic={76}
+        initialPulse={72}
+      />
+    );
 
-    await userEvent.type(screen.getByPlaceholderText("120"), "118");
-    await userEvent.type(screen.getByPlaceholderText("80"), "76");
-    await userEvent.type(screen.getByPlaceholderText("72"), "72");
     await userEvent.click(screen.getByText("Guardar"));
 
     await waitFor(async () => {
@@ -96,13 +116,17 @@ describe("RegisterForm integration with IndexedDB", () => {
 
     cleanup();
 
-    render(<RegisterForm onSave={onSave} onCancel={vi.fn()} initialDate={savedDate} />);
+    render(
+      <RegisterForm
+        onSave={onSave}
+        onCancel={vi.fn()}
+        initialDate={savedDate}
+        initialSystolic={130}
+        initialDiastolic={80}
+        initialPulse={72}
+      />
+    );
 
-    const sysInput = screen.getByPlaceholderText("120");
-    await userEvent.clear(sysInput);
-    await userEvent.type(sysInput, "130");
-    await userEvent.type(screen.getByPlaceholderText("80"), "80");
-    await userEvent.type(screen.getByPlaceholderText("72"), "72");
     await userEvent.click(screen.getByText("Guardar"));
 
     await waitFor(async () => {

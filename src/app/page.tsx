@@ -322,6 +322,9 @@ export default function Home() {
       {showForm && (
         <RegisterForm
           initialDate={todayRecord ? undefined : today}
+          initialSystolic={latest?.systolic}
+          initialDiastolic={latest?.diastolic}
+          initialPulse={latest?.pulse}
           onSave={handleSave}
           onCancel={() => setShowForm(false)}
         />
