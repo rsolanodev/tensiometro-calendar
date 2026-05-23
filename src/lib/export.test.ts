@@ -86,25 +86,33 @@ describe("mergeImport", () => {
     expect(apps[0].place).toBe("Matrona");
   });
 
-  it("skips duplicate appointments (same date + place)", async () => {
-    const { addAppointment } = await import("./db");
+  it("wipes existing local data before import", async () => {
+    const { saveRecord, addAppointment } = await import("./db");
+    await saveRecord({ date: "2026-05-01", systolic: 200, diastolic: 100, pulse: 80, pillTaken: false });
     await addAppointment({ date: "2026-05-01", place: "Matrona" });
 
     const data = {
       version: 1 as const,
       exportedAt: new Date().toISOString(),
-      records: [],
+      records: [
+        { date: "2026-05-10", systolic: 120, diastolic: 80, pulse: 72, pillTaken: true, notes: undefined, createdAt: "", updatedAt: "" },
+      ],
       appointments: [
-        { date: "2026-05-01", place: "Matrona" as const, notes: "eco", createdAt: "", updatedAt: "" },
+        { date: "2026-05-10", place: "Hospital La Fe" as const, notes: undefined, createdAt: "", updatedAt: "" },
       ],
     };
 
     const result = await mergeImport(data);
-    expect(result.appointmentsSkipped).toBe(1);
-    expect(result.appointmentsImported).toBe(0);
+    expect(result.recordsImported).toBe(1);
+    expect(result.appointmentsImported).toBe(1);
 
-    const apps = await getAppointmentsByDate("2026-05-01");
-    expect(apps).toHaveLength(1);
+    const allRecords = await getAllRecords();
+    expect(allRecords).toHaveLength(1);
+    expect(allRecords[0].systolic).toBe(120);
+
+    const allApps = await getAllAppointments();
+    expect(allApps).toHaveLength(1);
+    expect(allApps[0].place).toBe("Hospital La Fe");
   });
 
   it("reports correct counts for mixed data", async () => {
@@ -124,6 +132,5 @@ describe("mergeImport", () => {
     const result = await mergeImport(data);
     expect(result.recordsImported).toBe(2);
     expect(result.appointmentsImported).toBe(2);
-    expect(result.appointmentsSkipped).toBe(0);
   });
 });

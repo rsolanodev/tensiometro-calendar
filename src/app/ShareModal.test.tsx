@@ -108,13 +108,14 @@ describe("ShareModal", () => {
     await userEvent.click(screen.getByText("Importar datos"));
 
     await waitFor(() => {
-      expect(screen.getByText("Importados: 1 registros, 0 citas")).toBeDefined();
+      expect(screen.getByText(/Importados: 1 registros, 0 citas/)).toBeDefined();
+      expect(screen.getByText(/Datos locales reemplazados/)).toBeDefined();
     });
 
     expect(mergeImport).toHaveBeenCalledOnce();
   });
 
-  it("shows duplicate appointments info", async () => {
+  it("shows reemplazados message with counts", async () => {
     vi.mocked(decodeExport).mockReturnValue({
       version: 1,
       exportedAt: new Date().toISOString(),
@@ -123,8 +124,7 @@ describe("ShareModal", () => {
     });
     vi.mocked(mergeImport).mockResolvedValue({
       recordsImported: 0,
-      appointmentsImported: 0,
-      appointmentsSkipped: 1,
+      appointmentsImported: 1,
     });
 
     render(<ShareModal onClose={vi.fn()} />);
@@ -136,7 +136,7 @@ describe("ShareModal", () => {
     await userEvent.click(screen.getByText("Importar datos"));
 
     await waitFor(() => {
-      expect(screen.getByText(/1 citas omitidas por duplicado/)).toBeDefined();
+      expect(screen.getByText(/Importados: 0 registros, 1 citas/)).toBeDefined();
     });
   });
 });

@@ -1,6 +1,6 @@
 import { compressToBase64, decompressFromBase64 } from "lz-string";
 import type { ExportData, ExportDataV1, PressureRecord, Appointment } from "./types";
-import { saveRecord, getAppointmentsByDate, addAppointment, getAllRecords, getAllAppointments } from "./db";
+import { clearDB, saveRecord, addAppointment, getAllRecords, getAllAppointments } from "./db";
 
 const CURRENT_VERSION = 1 as const;
 
@@ -45,14 +45,13 @@ export function decodeExport(encoded: string): ExportData {
   return data;
 }
 
-export interface MergeResult {
+export interface ImportResult {
   recordsImported: number;
   appointmentsImported: number;
-  appointmentsSkipped: number;
 }
 
-export async function mergeImport(data: ExportData): Promise<MergeResult> {
-  const result: MergeResult = { recordsImported: 0, appointmentsImported: 0, appointmentsSkipped: 0 };
+export async function mergeImport(data: ExportData): Promise<ImportResult> {
+  await clearDB();
 
   for (const record of data.records) {
     await saveRecord({
@@ -63,23 +62,18 @@ export async function mergeImport(data: ExportData): Promise<MergeResult> {
       pillTaken: record.pillTaken,
       notes: record.notes,
     });
-    result.recordsImported++;
   }
 
   for (const appt of data.appointments) {
-    const existing = await getAppointmentsByDate(appt.date);
-    const dup = existing.find((e) => e.place === appt.place);
-    if (dup) {
-      result.appointmentsSkipped++;
-    } else {
-      await addAppointment({
-        date: appt.date,
-        place: appt.place,
-        notes: appt.notes,
-      });
-      result.appointmentsImported++;
-    }
+    await addAppointment({
+      date: appt.date,
+      place: appt.place,
+      notes: appt.notes,
+    });
   }
 
-  return result;
+  return {
+    recordsImported: data.records.length,
+    appointmentsImported: data.appointments.length,
+  };
 }

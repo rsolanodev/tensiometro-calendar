@@ -38,10 +38,7 @@ export default function ShareModal({ onClose }: Props) {
       const data = decodeExport(importText.trim());
       const result = await mergeImport(data);
       setImportResult(
-        `Importados: ${result.recordsImported} registros, ${result.appointmentsImported} citas` +
-          (result.appointmentsSkipped > 0
-            ? ` (${result.appointmentsSkipped} citas omitidas por duplicado)`
-            : "")
+        `Importados: ${result.recordsImported} registros, ${result.appointmentsImported} citas. Datos locales reemplazados.`
       );
     } catch (e) {
       setImportResult(e instanceof Error ? e.message : "Error al importar");
