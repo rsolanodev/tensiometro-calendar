@@ -131,12 +131,16 @@ export default function AppointmentForm({
           </div>
         </div>
 
+        {saveError && (
+          <p className="text-label-sm text-primary text-center mt-md">{saveError}</p>
+        )}
+
         <div className="flex gap-sm mt-xl">
           <button type="button" onClick={onCancel} className="btn-secondary flex-1">
             Cancelar
           </button>
-          <button type="submit" className="btn-primary flex-1">
-            Guardar
+          <button type="submit" disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
+            {saving ? "Guardando…" : "Guardar"}
           </button>
         </div>
       </form>

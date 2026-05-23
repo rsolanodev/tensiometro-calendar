@@ -145,3 +145,9 @@ export async function deleteAppointment(id: number): Promise<void> {
   const db = await getDb();
   await db.delete(APPOINTMENTS_STORE, id);
 }
+
+export async function clearDB(): Promise<void> {
+  const db = await getDb();
+  await db.clear(RECORDS_STORE);
+  await db.clear(APPOINTMENTS_STORE);
+}
