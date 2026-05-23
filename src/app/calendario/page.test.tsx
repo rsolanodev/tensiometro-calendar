@@ -41,4 +41,20 @@ describe("CalendarioPage", () => {
     const calendarLinks = screen.getAllByText("Calendario");
     expect(calendarLinks.length).toBe(2);
   });
+
+  it("renders the legend with all places", () => {
+    render(<CalendarioPage />);
+    expect(screen.getByText("Lugares")).toBeDefined();
+    expect(screen.getByText("Matrona")).toBeDefined();
+    expect(screen.getByText("Centro de Salud")).toBeDefined();
+    expect(screen.getByText("Hospital General")).toBeDefined();
+    expect(screen.getByText("Hospital 9 de Octubre")).toBeDefined();
+    expect(screen.getByText("Hospital La Fe")).toBeDefined();
+  });
+
+  it("renders month navigation buttons", () => {
+    render(<CalendarioPage />);
+    const buttons = screen.getAllByRole("button");
+    expect(buttons.length).toBeGreaterThan(0);
+  });
 });

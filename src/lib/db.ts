@@ -1,22 +1,35 @@
 import { openDB, type IDBPDatabase } from "idb";
-import type { PressureRecord, NewPressureRecord } from "./types";
+import type {
+  PressureRecord,
+  NewPressureRecord,
+  Appointment,
+  NewAppointment,
+} from "./types";
 
 const DB_NAME = "materna";
-const DB_VERSION = 1;
-const STORE_NAME = "records";
+const DB_VERSION = 2;
+const RECORDS_STORE = "records";
+const APPOINTMENTS_STORE = "appointments";
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
 
 function getDb() {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, {
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          const store = db.createObjectStore(RECORDS_STORE, {
             keyPath: "id",
             autoIncrement: true,
           });
           store.createIndex("by-date", "date", { unique: true });
+        }
+        if (oldVersion < 2) {
+          const store = db.createObjectStore(APPOINTMENTS_STORE, {
+            keyPath: "id",
+            autoIncrement: true,
+          });
+          store.createIndex("by-date", "date", { unique: false });
         }
       },
     });
@@ -34,7 +47,7 @@ export async function addRecord(
     createdAt: now,
     updatedAt: now,
   };
-  return db.add(STORE_NAME, record) as Promise<number>;
+  return db.add(RECORDS_STORE, record) as Promise<number>;
 }
 
 export async function updateRecord(
@@ -45,20 +58,20 @@ export async function updateRecord(
     ...data,
     updatedAt: new Date().toISOString(),
   };
-  await db.put(STORE_NAME, record);
+  await db.put(RECORDS_STORE, record);
 }
 
 export async function getRecordByDate(
   date: string
 ): Promise<PressureRecord | undefined> {
   const db = await getDb();
-  const index = db.transaction(STORE_NAME).store.index("by-date");
+  const index = db.transaction(RECORDS_STORE).store.index("by-date");
   return index.get(date);
 }
 
 export async function getAllRecords(): Promise<PressureRecord[]> {
   const db = await getDb();
-  const records = await db.getAll(STORE_NAME);
+  const records = await db.getAll(RECORDS_STORE);
   return records.reverse();
 }
 
@@ -67,7 +80,7 @@ export async function getRecordsInRange(
   toDate: string
 ): Promise<PressureRecord[]> {
   const db = await getDb();
-  const index = db.transaction(STORE_NAME).store.index("by-date");
+  const index = db.transaction(RECORDS_STORE).store.index("by-date");
   const range = IDBKeyRange.bound(fromDate, toDate);
   const records = await index.getAll(range);
   return records.reverse();
@@ -75,5 +88,49 @@ export async function getRecordsInRange(
 
 export async function deleteRecord(id: number): Promise<void> {
   const db = await getDb();
-  await db.delete(STORE_NAME, id);
+  await db.delete(RECORDS_STORE, id);
+}
+
+// ─── Appointments ───────────────────────────────────────────
+
+export async function addAppointment(
+  data: NewAppointment
+): Promise<number> {
+  const db = await getDb();
+  const now = new Date().toISOString();
+  const appointment: Appointment = {
+    ...data,
+    createdAt: now,
+    updatedAt: now,
+  };
+  return db.add(APPOINTMENTS_STORE, appointment) as Promise<number>;
+}
+
+export async function updateAppointment(
+  data: Appointment
+): Promise<void> {
+  const db = await getDb();
+  await db.put(APPOINTMENTS_STORE, {
+    ...data,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export async function getAppointmentsByDate(
+  date: string
+): Promise<Appointment[]> {
+  const db = await getDb();
+  const index = db.transaction(APPOINTMENTS_STORE).store.index("by-date");
+  return index.getAll(date);
+}
+
+export async function getAllAppointments(): Promise<Appointment[]> {
+  const db = await getDb();
+  const records = await db.getAll(APPOINTMENTS_STORE);
+  return records.reverse();
+}
+
+export async function deleteAppointment(id: number): Promise<void> {
+  const db = await getDb();
+  await db.delete(APPOINTMENTS_STORE, id);
 }

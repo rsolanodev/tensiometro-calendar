@@ -1,8 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { getSpainToday } from "@/lib/helpers";
+import {
+  addAppointment,
+  getAllAppointments,
+  getAppointmentsByDate,
+  deleteAppointment,
+} from "@/lib/db";
+import type { Appointment, NewAppointment, Place } from "@/lib/types";
+import { PLACES, PLACE_COLORS } from "@/lib/types";
 import BottomNav from "../BottomNav";
+import AppointmentForm from "../AppointmentForm";
 
 const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
 
@@ -16,15 +25,94 @@ function getMonthGrid(year: number, month: number) {
   return grid;
 }
 
+function dateStr(year: number, month: number, day: number) {
+  const m = String(month + 1).padStart(2, "0");
+  const d = String(day).padStart(2, "0");
+  return `${year}-${m}-${d}`;
+}
+
 export default function CalendarioPage() {
   const today = getSpainToday();
-  const [year, month] = today.split("-").map(Number);
-  const monthName = new Date(year, month - 1).toLocaleString("es-ES", {
+  const [year, setYear] = useState(() => Number(today.slice(0, 4)));
+  const [month, setMonth] = useState(() => Number(today.slice(5, 7)) - 1);
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    () => Number(today.slice(8))
+  );
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [monthApps, setMonthApps] = useState<Map<string, Place[]>>(new Map());
+  const [showForm, setShowForm] = useState(false);
+  const [allApps, setAllApps] = useState<Appointment[]>([]);
+
+  const monthName = new Date(year, month).toLocaleString("es-ES", {
     month: "long",
   });
   const todayDay = Number(today.slice(8));
+  const todayMonth = Number(today.slice(5, 7)) - 1;
+  const todayYear = Number(today.slice(0, 4));
 
-  const grid = useMemo(() => getMonthGrid(year, month - 1), [year, month]);
+  const grid = useMemo(() => getMonthGrid(year, month), [year, month]);
+
+  const selectedDate =
+    selectedDay !== null ? dateStr(year, month, selectedDay) : null;
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const loadAll = useCallback(async () => {
+    const all = await getAllAppointments();
+    setAllApps(all);
+
+    const map = new Map<string, Place[]>();
+    const from = dateStr(year, month, 1);
+    const to = dateStr(year, month, daysInMonth);
+    for (const app of all) {
+      if (app.date >= from && app.date <= to) {
+        const existing = map.get(app.date) ?? [];
+        existing.push(app.place);
+        map.set(app.date, existing);
+      }
+    }
+    setMonthApps(map);
+
+    if (selectedDate) {
+      const dayApps = await getAppointmentsByDate(selectedDate);
+      setAppointments(dayApps);
+    }
+  }, [year, month, selectedDate, daysInMonth]);
+
+  useEffect(() => {
+    loadAll();
+  }, [loadAll]);
+
+  async function handleSave(data: NewAppointment) {
+    await addAppointment(data);
+    setShowForm(false);
+    await loadAll();
+  }
+
+  async function handleDelete(id: number) {
+    await deleteAppointment(id);
+    await loadAll();
+  }
+
+  function prevMonth() {
+    if (month === 0) {
+      setYear((y) => y - 1);
+      setMonth(11);
+    } else {
+      setMonth((m) => m - 1);
+    }
+    setSelectedDay(null);
+  }
+
+  function nextMonth() {
+    if (month === 11) {
+      setYear((y) => y + 1);
+      setMonth(0);
+    } else {
+      setMonth((m) => m + 1);
+    }
+    setSelectedDay(null);
+  }
 
   return (
     <>
@@ -49,11 +137,31 @@ export default function CalendarioPage() {
         <h1 className="text-headline-sm flex-1">Calendario</h1>
       </header>
 
-      <main className="flex-1 px-lg py-lg">
+      <main className="flex-1 px-lg py-lg space-y-lg">
         <section className="card-surface">
-          <h2 className="text-headline-md text-center capitalize mb-lg">
-            {monthName} {year}
-          </h2>
+          <div className="flex items-center justify-between mb-lg">
+            <button
+              type="button"
+              onClick={prevMonth}
+              className="size-9 flex items-center justify-center rounded-full bg-surface-variant text-text-secondary"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <h2 className="text-headline-md capitalize">
+              {monthName} {year}
+            </h2>
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="size-9 flex items-center justify-center rounded-full bg-surface-variant text-text-secondary"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
 
           <div className="grid grid-cols-7 gap-1 text-center mb-sm">
             {WEEKDAYS.map((d) => (
@@ -68,27 +176,130 @@ export default function CalendarioPage() {
               day === null ? (
                 <div key={`e-${i}`} />
               ) : (
-                <div
+                <button
                   key={day}
-                  className={`py-sm rounded-full text-body-sm ${
-                    day === todayDay
-                      ? "bg-primary text-surface font-semibold"
-                      : "text-text-primary"
+                  type="button"
+                  onClick={() => setSelectedDay(day)}
+                  className={`relative py-sm rounded-full text-body-sm transition-colors ${
+                    day === selectedDay && day === todayDay && month === todayMonth && year === todayYear
+                      ? "bg-primary text-surface font-semibold ring-2 ring-primary-soft"
+                      : day === selectedDay
+                        ? "bg-primary-soft text-text-primary font-semibold"
+                        : day === todayDay && month === todayMonth && year === todayYear
+                          ? "text-text-primary font-semibold"
+                          : "text-text-primary"
                   }`}
                 >
                   {day}
-                </div>
+                  {monthApps.has(dateStr(year, month, day)) && (
+                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+                      {monthApps.get(dateStr(year, month, day))!.map((p, idx) => (
+                        <span
+                          key={idx}
+                          className="size-1.5 rounded-full"
+                          style={{ backgroundColor: PLACE_COLORS[p] }}
+                        />
+                      ))}
+                    </span>
+                  )}
+                </button>
               )
             )}
           </div>
         </section>
 
-        <p className="text-body-sm text-text-secondary text-center mt-lg">
-          Selecciona un día para ver o añadir registros
-        </p>
+        {selectedDate && (
+          <section className="card-surface">
+            <div className="flex items-center justify-between mb-md">
+              <h3 className="text-headline-sm">Citas médicas</h3>
+              <button
+                type="button"
+                onClick={() => setShowForm(true)}
+                className="btn-secondary text-label-sm !py-xs !px-md"
+              >
+                + Añadir
+              </button>
+            </div>
+
+            {appointments.length === 0 ? (
+              <p className="text-body-sm text-text-secondary text-center py-md">
+                No hay citas para este día
+              </p>
+            ) : (
+              <div className="space-y-sm">
+                {appointments.map((app) => (
+                  <div
+                    key={app.id}
+                    className="list-item-article"
+                  >
+                    <span
+                      className="size-3 rounded-full shrink-0"
+                      style={{ backgroundColor: PLACE_COLORS[app.place] }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-body-sm font-semibold text-text-primary">
+                        {app.place}
+                      </p>
+                      {app.notes && (
+                        <p className="text-label-sm text-text-secondary truncate">
+                          {app.notes}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => app.id !== undefined && handleDelete(app.id)}
+                      className="size-8 flex items-center justify-center rounded-full bg-surface-variant text-text-secondary shrink-0"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Legend */}
+        <section>
+          <h4 className="text-label-sm text-text-secondary mb-sm">Lugares</h4>
+          <div className="flex flex-wrap gap-sm">
+            {PLACES.map((p) => (
+              <span
+                key={p}
+                className="chip-topic"
+                style={
+                  {
+                    "--chip-bg": PLACE_COLORS[p] + "20",
+                    "--chip-color": PLACE_COLORS[p],
+                    backgroundColor: PLACE_COLORS[p] + "20",
+                    color: PLACE_COLORS[p],
+                  } as React.CSSProperties
+                }
+              >
+                <span
+                  className="size-2 rounded-full mr-xs"
+                  style={{ backgroundColor: PLACE_COLORS[p] }}
+                />
+                {p}
+              </span>
+            ))}
+          </div>
+        </section>
       </main>
 
       <BottomNav />
+
+      {showForm && (
+        <AppointmentForm
+          initialDate={selectedDate ?? undefined}
+          onSave={handleSave}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
     </>
   );
 }
