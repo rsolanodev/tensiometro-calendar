@@ -119,66 +119,74 @@ export default function Home() {
         <section className="card-surface flex flex-col items-center py-xl gap-md">
           <p className="text-body-sm text-text-secondary">Semana de embarazo</p>
 
-          <div className="relative flex items-center justify-center">
-            <ProgressRing
-              percentage={progressPercent}
-              size={200}
-              strokeWidth={10}
-            />
-            <div className="absolute flex flex-col items-center">
-              <span className="text-headline-lg text-primary">{week}</span>
-              <span className="text-label-sm text-text-secondary">semanas</span>
-              <span className="text-label-sm text-text-secondary mt-xs">
-                Día {dayOfWeek}
-              </span>
+          <div className="flex flex-row items-center gap-lg w-full justify-center">
+            <div className="relative shrink-0">
+              <ProgressRing
+                percentage={progressPercent}
+                size={150}
+                strokeWidth={8}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-headline-lg text-primary">{week}</span>
+                <span className="text-label-sm text-text-secondary -mt-1">semanas</span>
+                <span className="text-label-sm text-text-secondary">
+                  Día {dayOfWeek}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-3 gap-md w-full mt-md">
-            <div className="flex flex-col items-center gap-xs py-sm px-xs rounded-lg bg-surface-variant">
-              <span className="text-label-sm text-text-secondary">Sistólica</span>
-              <span className="text-headline-sm text-text-primary">
-                {latest?.systolic ?? "—"}
-              </span>
-              {latest && (
-                <span
-                  className={`text-label-sm ${
-                    isNormal(latest.systolic, latest.diastolic)
-                      ? "text-success"
-                      : "text-primary"
-                  }`}
-                >
-                  {isNormal(latest.systolic, latest.diastolic)
-                    ? "Normal"
-                    : "Alerta"}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-xs py-sm px-xs rounded-lg bg-surface-variant">
-              <span className="text-label-sm text-text-secondary">Diastólica</span>
-              <span className="text-headline-sm text-text-primary">
-                {latest?.diastolic ?? "—"}
-              </span>
-              {latest && (
-                <span
-                  className={`text-label-sm ${
-                    isNormal(latest.systolic, latest.diastolic)
-                      ? "text-success"
-                      : "text-primary"
-                  }`}
-                >
-                  {isNormal(latest.systolic, latest.diastolic)
-                    ? "Normal"
-                    : "Alerta"}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-xs py-sm px-xs rounded-lg bg-surface-variant">
-              <span className="text-label-sm text-text-secondary">Pulso</span>
-              <span className="text-headline-sm text-text-primary">
-                {latest?.pulse ?? "—"}
-              </span>
-              <span className="text-label-sm text-text-secondary">bpm</span>
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <div className="flex flex-col gap-0.5 py-1.5 px-3 rounded-lg bg-surface-variant">
+                <span className="text-label-sm text-text-secondary">Sistólica</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-headline-sm text-text-primary">
+                    {latest?.systolic ?? "—"}
+                  </span>
+                  {latest && (
+                    <span
+                      className={`text-label-sm ${
+                        isNormal(latest.systolic, latest.diastolic)
+                          ? "text-success"
+                          : "text-primary"
+                      }`}
+                    >
+                      {isNormal(latest.systolic, latest.diastolic)
+                        ? "Normal"
+                        : "Alerta"}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col gap-0.5 py-1.5 px-3 rounded-lg bg-surface-variant">
+                <span className="text-label-sm text-text-secondary">Diastólica</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-headline-sm text-text-primary">
+                    {latest?.diastolic ?? "—"}
+                  </span>
+                  {latest && (
+                    <span
+                      className={`text-label-sm ${
+                        isNormal(latest.systolic, latest.diastolic)
+                          ? "text-success"
+                          : "text-primary"
+                      }`}
+                    >
+                      {isNormal(latest.systolic, latest.diastolic)
+                        ? "Normal"
+                        : "Alerta"}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col gap-0.5 py-1.5 px-3 rounded-lg bg-surface-variant">
+                <span className="text-label-sm text-text-secondary">Pulso</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-headline-sm text-text-primary">
+                    {latest?.pulse ?? "—"}
+                  </span>
+                  <span className="text-label-sm text-text-secondary">bpm</span>
+                </div>
+              </div>
             </div>
           </div>
 
