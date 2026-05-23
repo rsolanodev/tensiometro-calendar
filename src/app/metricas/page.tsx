@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { getAllRecords, getAllAppointments } from "@/lib/db";
-import { getPregnancyWeek } from "@/lib/pregnancy";
-import { getSpainToday, isNormal } from "@/lib/helpers";
+import { getAllRecords } from "@/lib/db";
+import { isNormal } from "@/lib/helpers";
 import { calculateMetrics } from "@/lib/metrics";
-import type { PressureRecord, Appointment } from "@/lib/types";
-import { PLACE_COLORS } from "@/lib/types";
+import type { PressureRecord } from "@/lib/types";
 import BottomNav from "../BottomNav";
 import ShareModal from "../ShareModal";
 
@@ -124,15 +122,10 @@ function BPChart({ records }: { records: PressureRecord[] }) {
 }
 
 function SummaryCard({ metrics }: { metrics: ReturnType<typeof calculateMetrics> }) {
-  const { week } = getPregnancyWeek();
   return (
     <section className="card-surface">
       <h2 className="text-headline-sm mb-md">Resumen</h2>
-      <div className="grid grid-cols-2 gap-md">
-        <div className="flex flex-col items-center py-sm px-md rounded-lg bg-surface-variant">
-          <span className="text-label-sm text-text-secondary">Semana</span>
-          <span className="text-headline-md text-primary">{week}</span>
-        </div>
+      <div className="grid grid-cols-1 gap-md">
         <div className="flex flex-col items-center py-sm px-md rounded-lg bg-surface-variant">
           <span className="text-label-sm text-text-secondary">Total registros</span>
           <span className="text-headline-md text-text-primary">
@@ -140,7 +133,7 @@ function SummaryCard({ metrics }: { metrics: ReturnType<typeof calculateMetrics>
           </span>
         </div>
         {metrics.firstDate && (
-          <div className="col-span-2 flex flex-col items-center py-sm px-md rounded-lg bg-surface-variant">
+          <div className="flex flex-col items-center py-sm px-md rounded-lg bg-surface-variant">
             <span className="text-label-sm text-text-secondary">Período</span>
             <span className="text-body-sm text-text-primary">
               {metrics.firstDate} → {metrics.lastDate}
@@ -371,61 +364,13 @@ function RecordsTable({
   );
 }
 
-function AppointmentsCard({
-  appointments,
-}: {
-  appointments: Appointment[];
-}) {
-  if (appointments.length === 0) return null;
-
-  const sorted = [...appointments].sort((a, b) =>
-    a.date.localeCompare(b.date)
-  );
-
-  return (
-    <section className="card-surface">
-      <h2 className="text-headline-sm mb-md">Citas médicas</h2>
-      <div className="space-y-sm">
-        {sorted.map((app) => (
-          <div
-            key={app.id}
-            className="flex items-center gap-sm py-sm"
-          >
-            <span
-              className="size-2.5 rounded-full shrink-0"
-              style={{ backgroundColor: PLACE_COLORS[app.place] }}
-            />
-            <span className="text-body-sm text-text-primary">
-              {app.date}
-            </span>
-            <span className="text-body-sm font-semibold text-text-primary">
-              {app.place}
-            </span>
-            {app.notes && (
-              <span className="text-label-sm text-text-secondary">
-                — {app.notes}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export default function MetricasPage() {
-  const { week } = getPregnancyWeek();
   const [records, setRecords] = useState<PressureRecord[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [showShare, setShowShare] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [allRecords, allAppointments] = await Promise.all([
-      getAllRecords(),
-      getAllAppointments(),
-    ]);
+    const allRecords = await getAllRecords();
     setRecords(allRecords);
-    setAppointments(allAppointments);
   }, []);
 
   useEffect(() => {
@@ -504,8 +449,7 @@ export default function MetricasPage() {
           Materna — Informe de Tensión Arterial
         </h1>
         <p className="text-body-sm text-text-secondary">
-          Generado el {new Date().toLocaleDateString("es-ES")} · Semana{" "}
-          {week} de embarazo
+          Generado el {new Date().toLocaleDateString("es-ES")}
         </p>
       </div>
 
@@ -523,7 +467,6 @@ export default function MetricasPage() {
         )}
 
         <RecordsTable records={records} />
-        <AppointmentsCard appointments={appointments} />
       </main>
 
       <BottomNav />

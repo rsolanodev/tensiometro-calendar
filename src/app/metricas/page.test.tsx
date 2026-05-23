@@ -6,10 +6,6 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/metricas",
 }));
 
-vi.mock("@/lib/pregnancy", () => ({
-  getPregnancyWeek: () => ({ week: 12, totalDays: 88, dayOfWeek: 4 }),
-}));
-
 describe("MetricasPage", () => {
   beforeEach(async () => {
     const { clearDB } = await import("@/lib/db");
@@ -115,25 +111,6 @@ describe("MetricasPage", () => {
 
     const diaEls = screen.getAllByText("Diastólica");
     expect(diaEls.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it("renders appointments card when appointments exist", async () => {
-    const { addAppointment } = await import("@/lib/db");
-
-    await addAppointment({
-      date: "2026-06-01",
-      place: "Matrona",
-      notes: "Revisión mensual",
-    });
-
-    render(<MetricasPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Citas médicas")).toBeDefined();
-    });
-
-    expect(screen.getByText("Matrona")).toBeDefined();
-    expect(screen.getByText("2026-06-01")).toBeDefined();
   });
 
   it("renders the bottom nav", () => {
