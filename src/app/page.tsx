@@ -10,6 +10,7 @@ import {
 import type { PressureRecord, NewPressureRecord } from "@/lib/types";
 import { formatDateLabel, formatSpainTime, getSpainToday, isNormal } from "@/lib/helpers";
 import RegisterForm from "./RegisterForm";
+import BottomNav from "./BottomNav";
 
 function ProgressRing({
   percentage,
@@ -261,6 +262,8 @@ export default function Home() {
           )}
         </section>
       </main>
+
+      <BottomNav />
 
       {showForm && (
         <RegisterForm
