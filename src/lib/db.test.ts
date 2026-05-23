@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   addRecord,
+  saveRecord,
   getRecordByDate,
   getAllRecords,
   getRecordsInRange,
@@ -82,5 +83,28 @@ describe("db", () => {
 
     const deleted = await getRecordByDate("2026-05-22");
     expect(deleted).toBeUndefined();
+  });
+
+  it("saveRecord adds a new record if date does not exist", async () => {
+    const id = await saveRecord(baseRecord);
+    expect(id).toBeGreaterThan(0);
+
+    const record = await getRecordByDate("2026-05-22");
+    expect(record).toBeDefined();
+    expect(record!.systolic).toBe(118);
+  });
+
+  it("saveRecord updates existing record if date already exists", async () => {
+    await addRecord(baseRecord);
+
+    const id = await saveRecord({
+      ...baseRecord,
+      systolic: 130,
+    });
+
+    const record = await getRecordByDate("2026-05-22");
+    expect(record).toBeDefined();
+    expect(record!.systolic).toBe(130);
+    expect(record!.diastolic).toBe(76);
   });
 });

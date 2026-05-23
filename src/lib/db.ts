@@ -50,6 +50,17 @@ export async function addRecord(
   return db.add(RECORDS_STORE, record) as Promise<number>;
 }
 
+export async function saveRecord(
+  data: NewPressureRecord
+): Promise<number> {
+  const existing = await getRecordByDate(data.date);
+  if (existing) {
+    await updateRecord({ ...existing, ...data });
+    return existing.id!;
+  }
+  return addRecord(data);
+}
+
 export async function updateRecord(
   data: PressureRecord
 ): Promise<void> {

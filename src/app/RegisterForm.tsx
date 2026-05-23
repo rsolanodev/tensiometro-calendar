@@ -5,7 +5,7 @@ import type { NewPressureRecord } from "@/lib/types";
 import { getSpainToday } from "@/lib/helpers";
 
 type Props = {
-  onSave: (data: NewPressureRecord) => void;
+  onSave: (data: NewPressureRecord) => void | Promise<void>;
   onCancel: () => void;
   initialDate?: string;
 };
@@ -18,6 +18,8 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
   const [pillTaken, setPillTaken] = useState(false);
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   function validate() {
     const errs: Record<string, string> = {};
@@ -37,18 +39,26 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
     return Object.keys(errs).length === 0;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
 
-    onSave({
-      date,
-      systolic: Number(systolic),
-      diastolic: Number(diastolic),
-      pulse: Number(pulse),
-      pillTaken,
-      notes: notes || undefined,
-    });
+    setSaveError("");
+    setSaving(true);
+    try {
+      await onSave({
+        date,
+        systolic: Number(systolic),
+        diastolic: Number(diastolic),
+        pulse: Number(pulse),
+        pillTaken,
+        notes: notes || undefined,
+      });
+    } catch {
+      setSaveError("Error al guardar. Inténtalo de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -157,12 +167,16 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
           </div>
         </div>
 
+        {saveError && (
+          <p className="text-label-sm text-primary text-center mt-md">{saveError}</p>
+        )}
+
         <div className="flex gap-sm mt-xl">
           <button type="button" onClick={onCancel} className="btn-secondary flex-1">
             Cancelar
           </button>
-          <button type="submit" className="btn-primary flex-1">
-            Guardar
+          <button type="submit" disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
+            {saving ? "Guardando…" : "Guardar"}
           </button>
         </div>
       </form>

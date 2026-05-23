@@ -7,7 +7,7 @@ import {
   getAllAppointments,
   getAppointmentsByDate,
   deleteAppointment,
-  addRecord,
+  saveRecord,
   getRecordByDate,
 } from "@/lib/db";
 import type {
@@ -117,7 +117,7 @@ export default function CalendarioPage() {
   }
 
   async function handleSaveRecord(data: NewPressureRecord) {
-    await addRecord(data);
+    await saveRecord(data);
     setShowRegForm(false);
     await loadAll();
   }

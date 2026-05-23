@@ -3,9 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { getPregnancyWeek } from "@/lib/pregnancy";
 import {
-  addRecord,
-  getAllRecords,
-  getRecordByDate,
+  saveRecord, getAllRecords, getRecordByDate,
 } from "@/lib/db";
 import type { PressureRecord, NewPressureRecord } from "@/lib/types";
 import { formatDateLabel, formatSpainTime, getSpainToday, isNormal } from "@/lib/helpers";
@@ -74,7 +72,7 @@ export default function Home() {
   const latest = records.length > 0 ? records[0] : undefined;
 
   async function handleSave(data: NewPressureRecord) {
-    await addRecord(data);
+    await saveRecord(data);
     setShowForm(false);
     await loadRecords();
   }

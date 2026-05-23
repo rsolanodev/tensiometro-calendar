@@ -6,7 +6,7 @@ import { PLACES, PLACE_COLORS } from "@/lib/types";
 import { getSpainToday } from "@/lib/helpers";
 
 type Props = {
-  onSave: (data: NewAppointment) => void;
+  onSave: (data: NewAppointment) => void | Promise<void>;
   onCancel: () => void;
   initialDate?: string;
 };
@@ -19,10 +19,20 @@ export default function AppointmentForm({
   const [date, setDate] = useState(initialDate ?? getSpainToday());
   const [place, setPlace] = useState<Place>(PLACES[0]);
   const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSave({ date, place, notes: notes || undefined });
+    setSaveError("");
+    setSaving(true);
+    try {
+      await onSave({ date, place, notes: notes || undefined });
+    } catch {
+      setSaveError("Error al guardar. Inténtalo de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
