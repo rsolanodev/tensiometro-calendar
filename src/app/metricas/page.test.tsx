@@ -22,7 +22,6 @@ describe("MetricasPage", () => {
 
   it("shows section titles when no records exist", () => {
     render(<MetricasPage />);
-    expect(screen.getByText("Resumen")).toBeDefined();
     expect(screen.getByText("Promedios")).toBeDefined();
     expect(screen.getByText("Indicadores de salud")).toBeDefined();
     expect(screen.getByText("Rangos")).toBeDefined();

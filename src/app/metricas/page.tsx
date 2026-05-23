@@ -121,30 +121,6 @@ function BPChart({ records }: { records: PressureRecord[] }) {
   );
 }
 
-function SummaryCard({ metrics }: { metrics: ReturnType<typeof calculateMetrics> }) {
-  return (
-    <section className="card-surface">
-      <h2 className="text-headline-sm mb-md">Resumen</h2>
-      <div className="grid grid-cols-1 gap-md">
-        <div className="flex flex-col items-center py-sm px-md rounded-lg bg-surface-variant">
-          <span className="text-label-sm text-text-secondary">Total registros</span>
-          <span className="text-headline-md text-text-primary">
-            {metrics.totalRecords}
-          </span>
-        </div>
-        {metrics.firstDate && (
-          <div className="flex flex-col items-center py-sm px-md rounded-lg bg-surface-variant">
-            <span className="text-label-sm text-text-secondary">Período</span>
-            <span className="text-body-sm text-text-primary">
-              {metrics.firstDate} → {metrics.lastDate}
-            </span>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 function AveragesCard({
   metrics,
 }: {
@@ -454,7 +430,6 @@ export default function MetricasPage() {
       </div>
 
       <main className="flex-1 px-lg py-lg space-y-lg">
-        <SummaryCard metrics={metrics} />
         <AveragesCard metrics={metrics} />
         <HealthCard metrics={metrics} />
         <RangesCard metrics={metrics} />
