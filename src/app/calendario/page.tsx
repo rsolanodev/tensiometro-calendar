@@ -333,6 +333,13 @@ export default function CalendarioPage() {
                       bpm
                     </span>
                   </div>
+                  {selectedRecord.time && (
+                    <div className="col-span-3 text-center">
+                      <span className="text-label-sm text-text-secondary">
+                        {selectedRecord.time}
+                      </span>
+                    </div>
+                  )}
                   {selectedRecord.pillTaken && (
                     <div className="col-span-3 flex items-center gap-sm py-sm px-md rounded-lg bg-success/10 text-success">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

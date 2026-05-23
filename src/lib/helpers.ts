@@ -58,6 +58,18 @@ export function formatSpainTime(isoStr: string) {
   });
 }
 
+export function getSpainTimeString(): string {
+  const str = new Intl.DateTimeFormat("es-ES", {
+    timeZone: SPAIN_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const h = str.find((p) => p.type === "hour")!.value;
+  const m = str.find((p) => p.type === "minute")!.value;
+  return `${h}:${m}`;
+}
+
 export function isNormal(systolic: number, diastolic: number) {
   return systolic < 140 && diastolic < 90;
 }

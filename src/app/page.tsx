@@ -79,6 +79,21 @@ export default function Home() {
     await loadRecords();
   }
 
+  async function togglePill(id: number) {
+    const entry = records.find((r) => r.id === id);
+    if (!entry) return;
+    await saveRecord({
+      date: entry.date,
+      time: entry.time,
+      systolic: entry.systolic,
+      diastolic: entry.diastolic,
+      pulse: entry.pulse,
+      pillTaken: !entry.pillTaken,
+      notes: entry.notes,
+    });
+    await loadRecords();
+  }
+
   return (
     <>
       <header className="app-bar">
@@ -117,14 +132,12 @@ export default function Home() {
 
       <main className="flex-1 px-lg py-lg space-y-lg">
         <section className="card-surface flex flex-col items-center py-xl gap-md">
-          <p className="text-body-sm text-text-secondary">Semana de embarazo</p>
-
           <div className="flex flex-row items-center gap-lg w-full justify-center">
             <div className="relative shrink-0">
               <ProgressRing
                 percentage={progressPercent}
                 size={150}
-                strokeWidth={12}
+                strokeWidth={16}
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-headline-lg text-primary">{week}</span>
@@ -243,6 +256,7 @@ export default function Home() {
                 <p className="text-label-sm text-text-secondary">
                   {todayRecord.systolic}/{todayRecord.diastolic} mmHg ·{" "}
                   {todayRecord.pulse} bpm
+                  {todayRecord.time && <> · {todayRecord.time}</>}
                 </p>
               </div>
             </div>
@@ -265,7 +279,7 @@ export default function Home() {
                       {formatDateLabel(entry.date)}
                     </span>
                     <span className="text-label-sm text-text-secondary">
-                      {formatSpainTime(entry.createdAt)}
+                      {entry.time ?? formatSpainTime(entry.createdAt)}
                     </span>
                   </div>
 
@@ -283,15 +297,17 @@ export default function Home() {
                       <p className="text-label-sm text-text-secondary">bpm</p>
                     </div>
                     <div className="flex items-center justify-center">
-                      {entry.pillTaken ? (
-                        <span className="text-label-sm text-success font-medium">
-                          Tomada
-                        </span>
-                      ) : (
-                        <span className="text-label-sm text-primary font-medium">
-                          Pendiente
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => entry.id !== undefined && togglePill(entry.id)}
+                        className={`text-label-sm font-medium cursor-pointer transition-colors ${
+                          entry.pillTaken
+                            ? "text-success"
+                            : "text-primary"
+                        }`}
+                      >
+                        {entry.pillTaken ? "Tomada" : "Pendiente"}
+                      </button>
                     </div>
                   </div>
                 </div>

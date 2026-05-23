@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { NewPressureRecord } from "@/lib/types";
-import { getSpainToday } from "@/lib/helpers";
+import { getSpainToday, getSpainTimeString } from "@/lib/helpers";
 
 type Props = {
   onSave: (data: NewPressureRecord) => void | Promise<void>;
@@ -12,6 +12,7 @@ type Props = {
 
 export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
   const [date, setDate] = useState(initialDate ?? getSpainToday());
+  const [time, setTime] = useState(getSpainTimeString());
   const [systolic, setSystolic] = useState("");
   const [diastolic, setDiastolic] = useState("");
   const [pulse, setPulse] = useState("");
@@ -48,6 +49,7 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
     try {
       await onSave({
         date,
+        time: time || undefined,
         systolic: Number(systolic),
         diastolic: Number(diastolic),
         pulse: Number(pulse),
@@ -91,6 +93,16 @@ export default function RegisterForm({ onSave, onCancel, initialDate }: Props) {
               className="w-full rounded-full border border-border-subtle bg-surface px-md py-sm text-body-md text-text-primary outline-none focus:border-primary"
             />
             {errors.date && <p className="text-label-sm text-primary mt-xs">{errors.date}</p>}
+          </div>
+
+          <div>
+            <label className="text-label-sm text-text-secondary block mb-xs">Hora</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full rounded-full border border-border-subtle bg-surface px-md py-sm text-body-md text-text-primary outline-none focus:border-primary"
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-sm">

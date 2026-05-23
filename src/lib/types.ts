@@ -19,6 +19,7 @@ export const PLACE_COLORS: Record<Place, string> = {
 export interface PressureRecord {
   id?: number;
   date: string;
+  time?: string;
   systolic: number;
   diastolic: number;
   pulse: number;
